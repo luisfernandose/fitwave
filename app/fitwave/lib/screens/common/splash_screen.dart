@@ -1,5 +1,7 @@
+import 'package:fitwave/screens/common/home_screen.dart';
 import 'package:flutter/material.dart';
 
+import '../consultant/qr_screen.dart';
 import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -18,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> {
     await Future.delayed(Duration(milliseconds: 3000), () {});
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
+      MaterialPageRoute(builder: (context) => HomeScreen()),
     );
   }
 
