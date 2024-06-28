@@ -1,56 +1,164 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'HomeScreen Example',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: HomeScreen(),
-    );
-  }
-}
+import '../consultant/qr_screen.dart';
+import 'login_screen.dart';
 
 class HomeScreen extends StatelessWidget {
+  final String userName;
+  final String role;
+
+  HomeScreen({required this.userName, required this.role});
+
   final List<Map<String, String>> exercises = [
     {
       "name": "Push Ups",
-      "image": "https://cdn.pixabay.com/photo/2016/11/29/09/32/sport-1867968_960_720.jpg"
+      "image": "https://st4.depositphotos.com/12982378/23309/i/450/depositphotos_233093594-stock-photo-racial-man-doing-push-ups.jpg"
     },
     {
       "name": "Squats",
-      "image": "https://cdn.pixabay.com/photo/2014/12/03/10/03/weights-554154_960_720.jpg"
+      "image": "https://st4.depositphotos.com/12985790/22701/i/450/depositphotos_227010956-stock-photo-focused-sportswoman-doing-squats-fitness.jpg"
     },
     {
       "name": "Lunges",
-      "image": "https://cdn.pixabay.com/photo/2017/08/02/01/01/lunge-2571855_960_720.jpg"
+      "image": "https://st4.depositphotos.com/14803258/19880/i/450/depositphotos_198807916-stock-photo-side-view-handsome-adult-sportsman.jpg"
     },
     {
       "name": "Planks",
-      "image": "https://cdn.pixabay.com/photo/2016/11/21/16/10/plank-1846127_960_720.jpg"
+      "image": "https://www.shutterstock.com/image-photo/strong-beautiful-fitness-girl-athletic-260nw-1497529061.jpg"
     },
     {
       "name": "Jumping Jacks",
-      "image": "https://cdn.pixabay.com/photo/2016/03/27/21/39/sport-1283796_960_720.jpg"
+      "image": "https://i.blogs.es/45b092/jumpingjack/1366_2000.jpeg"
     }
   ];
 
-  int _selectedIndex = 0;
+  void logout(BuildContext context) {
+    // Aquí iría la lógica para cerrar sesión, como limpiar tokens, reiniciar el estado, etc.
 
-  void _onItemTapped(int index) {
-    // Handle navigation to different screens based on index
-    // For simplicity, we are just changing the index here
-    _selectedIndex = index;
+    // Navegar de vuelta a la pantalla de inicio de sesión
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()), // Reemplaza con tu pantalla de inicio de sesión
+      (route) => false, // Elimina todas las rutas restantes en la pila
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> drawerItems = [
+      DrawerHeader(
+        decoration: BoxDecoration(
+          color: Colors.blue,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 30,
+              backgroundImage: NetworkImage('https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'),
+            ),
+            SizedBox(height: 10),
+            Text(
+              userName,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+              ),
+            ),
+            Text(
+              role,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+      ListTile(
+        leading: Icon(Icons.home),
+        title: Text('Inicio'),
+        onTap: () {
+          Navigator.pop(context);
+        },
+      ),
+      if (role == 'Asesor') ...[
+        ListTile(
+          leading: Icon(Icons.qr_code),
+          title: Text('QR'),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(context, MaterialPageRoute(builder: (context) => QrScreen()));
+          },
+        ),
+        ListTile(
+          leading: Icon(Icons.info),
+          title: Text('Información'),
+          onTap: () {
+            Navigator.pop(context);
+          },
+        ),
+      ] else if (role == 'Cliente') ...[
+        ListTile(
+          leading: Icon(Icons.support),
+          title: Text('Asesorías'),
+          onTap: () {
+            Navigator.pop(context);
+          },
+        ),
+        ListTile(
+          leading: Icon(Icons.request_page),
+          title: Text('Solicitud'),
+          onTap: () {
+            Navigator.pop(context);
+          },
+        ),
+      ],
+      ListTile(
+        leading: Icon(Icons.person),
+        title: Text('Perfil'),
+        onTap: () {
+          Navigator.pop(context);
+        },
+      ),
+      ListTile(
+        leading: Icon(Icons.settings),
+        title: Text('Configuración'),
+        onTap: () {
+          Navigator.pop(context);
+        },
+      ),
+      ListTile(
+        leading: Icon(Icons.logout),
+        title: Text('Cerrar sesión'),
+        onTap: () {
+          logout(context); // Llama al método logout al hacer tap en Cerrar sesión
+        },
+      ),
+    ];
+
+    List<BottomNavigationBarItem> bottomNavItems = role == 'Asesor'
+        ? [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.qr_code),
+              label: 'QR',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.info),
+              label: 'Información',
+            ),
+          ]
+        : [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.support),
+              label: 'Asesorías',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.request_page),
+              label: 'Solicitud',
+            ),
+          ];
+
     return Scaffold(
       appBar: AppBar(
         title: Text('HomeScreen'),
@@ -58,65 +166,7 @@ class HomeScreen extends StatelessWidget {
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundImage: NetworkImage('https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Luis',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                    ),
-                  ),
-                  Text(
-                    'luis@example.com',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Inicio'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Perfil'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Configuración'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.logout),
-              title: Text('Cerrar sesión'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
+          children: drawerItems,
         ),
       ),
       body: Padding(
@@ -132,7 +182,12 @@ class HomeScreen extends StatelessWidget {
               Row(
                 children: <Widget>[
                   Text(
-                    'Luis',
+                    userName,
+                    style: TextStyle(fontSize: 20),
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    role,
                     style: TextStyle(fontSize: 20),
                   ),
                   SizedBox(width: 10),
@@ -201,22 +256,14 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.star),
-            label: 'Opción 1',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: 'Opción 2',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.event),
-            label: 'Opción 3',
-          ),
-        ],
+        currentIndex: 0,
+        onTap: (index) {
+          if (role == 'Asesor' && index == 0) {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => QrScreen()));
+          }
+          // Añadir más lógica según sea necesario para otros índices del bottomNavigationBar
+        },
+        items: bottomNavItems,
       ),
     );
   }
