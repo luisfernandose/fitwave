@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'home_screen.dart';
 
@@ -24,6 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
       "aB2zL9!cQ8*dE7+fX6hY5^iZ4&jK3(mN1oP0pR)qS[wT]uV{W}xUy@Z";
   String? role;
   String? userName;
+  String? userId;
 
   Future<String> getDeviceId() async {
     final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
@@ -38,19 +40,25 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     String deviceId = await getDeviceId();
+    var requestBody = jsonEncode(<String, String>{
+      'user': emailCont.text,
+      'password': passwordCont.text,
+      'deviseId': deviceId,
+      'secretkey': secretKey,
+    });
+
+    print("Request Body: $requestBody");
 
     final response = await http.post(
       Uri.parse('https://fitwave.bufalocargo.com/api/Security/ApiLogin'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: jsonEncode(<String, String>{
-        'user': emailCont.text,
-        'password': passwordCont.text,
-        'deviseId': deviceId,
-        'secretkey': secretKey,
-      }),
+      body: requestBody,
     );
+
+    print("Response Status Code: ${response.statusCode}");
+    print("Response Body: ${response.body}");
 
     setState(() {
       isLoading = false;
@@ -61,7 +69,14 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         role = responseData['data']['rol'];
         userName = responseData['data']['user']['names'];
+        userId = responseData['data']['user']['id'];
       });
+
+      // Save token in SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', responseData['data']['token']);
+      await prefs.setString('userId', responseData['data']['user']['id']);
+
       Navigator.push(
         context,
         MaterialPageRoute(

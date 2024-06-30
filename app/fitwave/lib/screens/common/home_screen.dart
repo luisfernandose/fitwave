@@ -1,30 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../client/session_screen.dart';
 import '../consultant/qr_screen.dart';
 import 'login_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final String userName;
   final String role;
 
   HomeScreen({required this.userName, required this.role});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String? token;
+  String? userId;
+
+  Future<void> _loadToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      token = prefs.getString('token');
+      userId = prefs.getString('userId');
+      print('el token es: $token');
+    });
+  }
+
   final List<Map<String, String>> exercises = [
     {
       "name": "Push Ups",
-      "image": "https://st4.depositphotos.com/12982378/23309/i/450/depositphotos_233093594-stock-photo-racial-man-doing-push-ups.jpg"
+      "image":
+          "https://st4.depositphotos.com/12982378/23309/i/450/depositphotos_233093594-stock-photo-racial-man-doing-push-ups.jpg"
     },
     {
       "name": "Squats",
-      "image": "https://st4.depositphotos.com/12985790/22701/i/450/depositphotos_227010956-stock-photo-focused-sportswoman-doing-squats-fitness.jpg"
+      "image":
+          "https://st4.depositphotos.com/12985790/22701/i/450/depositphotos_227010956-stock-photo-focused-sportswoman-doing-squats-fitness.jpg"
     },
     {
       "name": "Lunges",
-      "image": "https://st4.depositphotos.com/14803258/19880/i/450/depositphotos_198807916-stock-photo-side-view-handsome-adult-sportsman.jpg"
+      "image":
+          "https://st4.depositphotos.com/14803258/19880/i/450/depositphotos_198807916-stock-photo-side-view-handsome-adult-sportsman.jpg"
     },
     {
       "name": "Planks",
-      "image": "https://www.shutterstock.com/image-photo/strong-beautiful-fitness-girl-athletic-260nw-1497529061.jpg"
+      "image":
+          "https://www.shutterstock.com/image-photo/strong-beautiful-fitness-girl-athletic-260nw-1497529061.jpg"
     },
     {
       "name": "Jumping Jacks",
@@ -32,13 +55,21 @@ class HomeScreen extends StatelessWidget {
     }
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _loadToken();
+  }
+
   void logout(BuildContext context) {
     // Aquí iría la lógica para cerrar sesión, como limpiar tokens, reiniciar el estado, etc.
 
     // Navegar de vuelta a la pantalla de inicio de sesión
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => LoginScreen()), // Reemplaza con tu pantalla de inicio de sesión
+      MaterialPageRoute(
+          builder: (context) =>
+              LoginScreen()), // Reemplaza con tu pantalla de inicio de sesión
       (route) => false, // Elimina todas las rutas restantes en la pila
     );
   }
@@ -55,18 +86,19 @@ class HomeScreen extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 30,
-              backgroundImage: NetworkImage('https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'),
+              backgroundImage: NetworkImage(
+                  'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'),
             ),
             SizedBox(height: 10),
             Text(
-              userName,
+              widget.userName,
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 24,
               ),
             ),
             Text(
-              role,
+              widget.role,
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 16,
@@ -82,13 +114,14 @@ class HomeScreen extends StatelessWidget {
           Navigator.pop(context);
         },
       ),
-      if (role == 'Asesor') ...[
+      if (widget.role == 'Asesor') ...[
         ListTile(
           leading: Icon(Icons.qr_code),
           title: Text('QR'),
           onTap: () {
             Navigator.pop(context);
-            Navigator.push(context, MaterialPageRoute(builder: (context) => QrScreen()));
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => QrScreen()));
           },
         ),
         ListTile(
@@ -98,12 +131,13 @@ class HomeScreen extends StatelessWidget {
             Navigator.pop(context);
           },
         ),
-      ] else if (role == 'Cliente') ...[
+      ] else if (widget.role == 'Cliente') ...[
         ListTile(
           leading: Icon(Icons.support),
           title: Text('Asesorías'),
           onTap: () {
-            Navigator.pop(context);
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => SessionScreen()));
           },
         ),
         ListTile(
@@ -132,12 +166,13 @@ class HomeScreen extends StatelessWidget {
         leading: Icon(Icons.logout),
         title: Text('Cerrar sesión'),
         onTap: () {
-          logout(context); // Llama al método logout al hacer tap en Cerrar sesión
+          logout(
+              context); // Llama al método logout al hacer tap en Cerrar sesión
         },
       ),
     ];
 
-    List<BottomNavigationBarItem> bottomNavItems = role == 'Asesor'
+    List<BottomNavigationBarItem> bottomNavItems = widget.role == 'Asesor'
         ? [
             BottomNavigationBarItem(
               icon: Icon(Icons.qr_code),
@@ -182,12 +217,12 @@ class HomeScreen extends StatelessWidget {
               Row(
                 children: <Widget>[
                   Text(
-                    userName,
+                    widget.userName,
                     style: TextStyle(fontSize: 20),
                   ),
                   SizedBox(width: 10),
                   Text(
-                    role,
+                    widget.role,
                     style: TextStyle(fontSize: 20),
                   ),
                   SizedBox(width: 10),
@@ -258,8 +293,9 @@ class HomeScreen extends StatelessWidget {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         onTap: (index) {
-          if (role == 'Asesor' && index == 0) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => QrScreen()));
+          if (widget.role == 'Asesor' && index == 0) {
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => QrScreen()));
           }
           // Añadir más lógica según sea necesario para otros índices del bottomNavigationBar
         },
