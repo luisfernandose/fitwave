@@ -297,6 +297,11 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.push(
                 context, MaterialPageRoute(builder: (context) => QrScreen()));
           }
+          if (widget.role == 'Cliente' && index == 0) {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => SessionScreen()));
+          }
+
           // Añadir más lógica según sea necesario para otros índices del bottomNavigationBar
         },
         items: bottomNavItems,

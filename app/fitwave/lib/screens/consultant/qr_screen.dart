@@ -43,9 +43,10 @@ class _QrScreenState extends State<QrScreen> {
     final response = await http.get(
         Uri.parse('https://fitwave.bufalocargo.com/api/FitApi/GetAssesorQR'),
         headers: {
-          'Authorization': 'Bearer $token',
+          'Authorization': '$token',
           'Id': userId!,
         });
+        print(response.request);
 
     if (response.statusCode == 200) {
       var responseData = jsonDecode(response.body);
