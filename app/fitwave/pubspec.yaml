@@ -41,6 +41,7 @@ dependencies:
   loading_animation_widget: 1.2.1
   qr_bar_code_scanner_dialog: 0.0.5
   flutter_qr_bar_scanner: 3.0.2
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:

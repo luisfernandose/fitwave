@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../client/advisory_screen.dart';
+import '../client/advisory/advisory_screen.dart';
+import '../client/request_advice/request_advice_screen.dart';
 import '../consultant/qr_screen.dart';
 import 'login_screen.dart';
 
@@ -76,10 +77,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final Color primaryColor = Color.fromARGB(255, 111, 165, 167);
+    final Color backgroundColor = Color.fromARGB(255, 248, 248, 248);
     List<Widget> drawerItems = [
       DrawerHeader(
         decoration: BoxDecoration(
-          color: Colors.blue,
+          color: primaryColor,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,7 +147,8 @@ class _HomeScreenState extends State<HomeScreen> {
           leading: Icon(Icons.request_page),
           title: Text('Solicitud'),
           onTap: () {
-            Navigator.pop(context);
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => RequestAdviceScreen()));
           },
         ),
       ],
@@ -197,8 +201,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('HomeScreen'),
+        backgroundColor: primaryColor,
       ),
+      backgroundColor: backgroundColor,
       drawer: Drawer(
+        backgroundColor: backgroundColor,
         child: ListView(
           padding: EdgeInsets.zero,
           children: drawerItems,
@@ -216,17 +223,13 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Row(
                 children: <Widget>[
+                  Icon(Icons.person, size: 30),
+                  SizedBox(width: 10),
                   Text(
                     widget.userName,
                     style: TextStyle(fontSize: 20),
                   ),
                   SizedBox(width: 10),
-                  Text(
-                    widget.role,
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  SizedBox(width: 10),
-                  Icon(Icons.person, size: 30),
                 ],
               ),
               SizedBox(height: 20),
@@ -291,6 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: primaryColor,
         currentIndex: 0,
         onTap: (index) {
           if (widget.role == 'Asesor' && index == 0) {
@@ -301,8 +305,10 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => AdvisoryScreen()));
           }
-
-          // Añadir más lógica según sea necesario para otros índices del bottomNavigationBar
+          if (widget.role == 'Cliente' && index == 1) {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => RequestAdviceScreen()));
+          }
         },
         items: bottomNavItems,
       ),

@@ -7,10 +7,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -66,6 +66,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (response.statusCode == 200) {
       var responseData = jsonDecode(response.body);
+
+      // Check if 'rol' is null in the response
+      if (responseData['data']['rol'] == null) {
+        _showResponseDialog('Error', 'Ocurrió un error. Intenta de nuevo');
+        return;
+      }
+
       setState(() {
         role = responseData['data']['rol'];
         userName = responseData['data']['user']['names'];
@@ -84,16 +91,17 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     } else {
-      _showResponseDialog('Login failed', 'Error: ${response.body}');
+      _showResponseDialog('Login failed', 'Error: ${response.body}',
+          statusCode: response.statusCode);
     }
   }
 
-  void _showResponseDialog(String title, String message) {
+  void _showResponseDialog(String title, String message, {int? statusCode}) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(title),
+          title: Text('$title (${statusCode ?? 'Desconocido'})'),
           content: Text(message),
           actions: <Widget>[
             TextButton(
@@ -110,6 +118,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final Color primaryColor = Color.fromARGB(255, 111, 165, 167);
+    final Color backgroundColor = Color.fromARGB(255, 248, 248, 248);
     return Scaffold(
       body: Stack(
         children: [
@@ -126,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.all(16.0),
               margin: const EdgeInsets.all(24.0),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: backgroundColor,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
@@ -146,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 100, width: 100),
                       const SizedBox(height: 10),
                       const Text(
-                        'Sign In To Continue',
+                        'Inicia sesión para continuar',
                         style: TextStyle(
                           fontSize: 20.0,
                           fontWeight: FontWeight.w900,
@@ -157,8 +167,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: emailCont,
                         decoration: InputDecoration(
-                          label: const Text('Email / Usuario'),
-                          hintText: 'Email / Usuario',
+                          label: const Text('Correo / Usuario'),
+                          hintText: 'Correo / Usuario',
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                           ),
@@ -183,13 +193,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         obscuringCharacter: '*',
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter Password';
+                            return 'Por favor ingrese tu clave';
                           }
                           return null;
                         },
                         decoration: InputDecoration(
-                          label: const Text('Password'),
-                          hintText: 'Enter Password',
+                          label: const Text('Contraseña'),
+                          hintText: 'Ingresa tu contraseña',
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                           ),
@@ -223,7 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 activeColor: Colors.black,
                               ),
                               const Text(
-                                'Remember me',
+                                'Recordarme',
                                 style: TextStyle(
                                   color: Colors.black45,
                                 ),
@@ -238,11 +248,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                 context: context,
                                 builder: (BuildContext context) {
                                   return AlertDialog(
-                                    title: const Text('Change Password'),
+                                    title: const Text('Cambiar contraseña'),
                                     content: TextField(
                                       controller: _emailController,
                                       decoration: const InputDecoration(
-                                        hintText: 'Email',
+                                        hintText: 'Correo',
                                         border: OutlineInputBorder(),
                                       ),
                                       keyboardType: TextInputType.emailAddress,
@@ -252,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         onPressed: () {
                                           Navigator.of(context).pop();
                                         },
-                                        child: const Text('Cancel'),
+                                        child: const Text('Cancelar'),
                                       ),
                                       ElevatedButton(
                                         onPressed: () async {
@@ -261,7 +271,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           print(
                                               'Correo Electrónico Ingresado: $enteredEmail');
                                         },
-                                        child: const Text('Send'),
+                                        child: const Text('Enviar'),
                                       ),
                                     ],
                                   );
@@ -269,7 +279,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               );
                             },
                             child: const Text(
-                              'Forgot password?',
+                              'Olvidaste tu contraseña?',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
@@ -284,7 +294,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white, // Color de fondo
-                            backgroundColor: Colors.blue, // Color del texto
+                            backgroundColor: primaryColor, // Color del texto
                           ),
                           onPressed: () async {
                             if (formKey.currentState!.validate()) {
@@ -295,7 +305,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ? CircularProgressIndicator(
                                   color: Colors.white,
                                 )
-                              : const Text('Sign In'),
+                              : const Text('Iniciar Sesión'),
                         ),
                       ),
                       const SizedBox(height: 25.0),

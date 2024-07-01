@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:fitwave/screens/client/session_screen.dart';
+import 'package:fitwave/screens/client/advisory/session_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'models/coaching_data.dart';
+import '../models/coaching_data.dart';
 
 class AdvisoryScreen extends StatefulWidget {
   const AdvisoryScreen({super.key});
@@ -102,8 +102,13 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final Color primaryColor = Color.fromARGB(255, 111, 165, 167);
+    final Color backgroundColor = Color.fromARGB(255, 248, 248, 248);
     return Scaffold(
-      appBar: AppBar(title: const Text('Asesorias')),
+      appBar: AppBar(
+        title: const Text('Asesorias'),
+        backgroundColor: primaryColor,
+      ),
       body: Column(
         children: [
           Padding(
@@ -126,6 +131,7 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
                     itemBuilder: (context, index) {
                       var data = coachingDataList[index];
                       return Card(
+                        color: backgroundColor,
                         margin: const EdgeInsets.all(10),
                         child: Padding(
                           padding: const EdgeInsets.all(10.0),

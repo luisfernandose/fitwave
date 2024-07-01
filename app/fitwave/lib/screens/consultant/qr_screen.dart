@@ -46,7 +46,7 @@ class _QrScreenState extends State<QrScreen> {
           'Authorization': '$token',
           'Id': userId!,
         });
-        print(response.request);
+    print(response.request);
 
     if (response.statusCode == 200) {
       var responseData = jsonDecode(response.body);
@@ -94,8 +94,14 @@ class _QrScreenState extends State<QrScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final Color primaryColor = Color.fromARGB(255, 111, 165, 167);
+    final Color backgroundColor = Color.fromARGB(255, 248, 248, 248);
     return Scaffold(
-      appBar: AppBar(title: const Text('Compartir QR')),
+      appBar: AppBar(
+        title: const Text('Compartir QR'),
+        backgroundColor: primaryColor,
+      ),
+      backgroundColor: backgroundColor,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

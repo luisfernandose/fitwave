@@ -176,10 +176,14 @@ class _QrScanScreenState extends State<QrScanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final Color primaryColor = Color.fromARGB(255, 111, 165, 167);
+    final Color backgroundColor = Color.fromARGB(255, 248, 248, 248);
     return Scaffold(
         appBar: AppBar(
           title: Text('QR Scanner'),
+          backgroundColor: primaryColor,
         ),
+        backgroundColor: backgroundColor,
         body: _camState
             ? Center(
                 child: SizedBox(
