@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../client/session_screen.dart';
+import '../client/advisory_screen.dart';
 import '../consultant/qr_screen.dart';
 import 'login_screen.dart';
 
@@ -137,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text('Asesorías'),
           onTap: () {
             Navigator.push(context,
-                MaterialPageRoute(builder: (context) => SessionScreen()));
+                MaterialPageRoute(builder: (context) => AdvisoryScreen()));
           },
         ),
         ListTile(
@@ -299,7 +299,7 @@ class _HomeScreenState extends State<HomeScreen> {
           }
           if (widget.role == 'Cliente' && index == 0) {
             Navigator.push(context,
-                MaterialPageRoute(builder: (context) => SessionScreen()));
+                MaterialPageRoute(builder: (context) => AdvisoryScreen()));
           }
 
           // Añadir más lógica según sea necesario para otros índices del bottomNavigationBar

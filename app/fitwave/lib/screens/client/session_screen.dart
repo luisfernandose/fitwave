@@ -2,21 +2,26 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'models/coaching_data.dart';
+import 'models/session_data.dart';
+import 'qr_scan_screen.dart'; // Importa tu pantalla de escaneo QR aquí
 
 class SessionScreen extends StatefulWidget {
-  const SessionScreen({super.key});
+  const SessionScreen({Key? key});
 
   @override
   State<SessionScreen> createState() => _SessionScreenState();
 }
 
 class _SessionScreenState extends State<SessionScreen> {
-  List<CoachingData> coachingDataList = [];
+  List<SessionData> sessionLists = [];
+  SessionData? activeSession;
   late String? token;
-  late String? userId;
+  late String? couchingId;
+  int points = 0;
+  TextEditingController pendingPointsController = TextEditingController();
 
   @override
   void initState() {
@@ -33,24 +38,34 @@ class _SessionScreenState extends State<SessionScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       token = prefs.getString('token');
-      userId = 'f92ed681-c558-4bcf-9323-7e7f010b3331';
+      couchingId = '5fb3a6d4-37d0-4ed8-92c0-891498b1fe9c';
     });
   }
 
   void fetchData() async {
     final response = await http.get(
-        Uri.parse(
-            'https://fitwave.bufalocargo.com/api/FitApi/GetCustomerCoaching'),
-        headers: {
-          'Authorization': token!,
-          'CustomerId': userId!,
-        });
+      Uri.parse(
+          'https://fitwave.bufalocargo.com/api/FitApi/GetCustomerSessions'),
+      headers: {
+        'Authorization': token!,
+        'CoachingId': couchingId!,
+      },
+    );
 
     if (response.statusCode == 200) {
-      var responseData = jsonDecode(response.body)['data'] as List;
+      var responseData = jsonDecode(response.body)['data'];
+      var sessionListData = responseData['sessionLists'] as List;
+      var activeSessionData = responseData['activeSession'];
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('idSession', activeSessionData['idSession']);
+
       setState(() {
-        coachingDataList =
-            responseData.map((data) => CoachingData.fromJson(data)).toList();
+        sessionLists =
+            sessionListData.map((data) => SessionData.fromJson(data)).toList();
+        activeSession = SessionData.fromJson(activeSessionData);
+        pendingPointsController.text =
+            activeSession!.sessionPendingPoints.toStringAsFixed(0);
       });
     } else {
       print(response.body);
@@ -85,228 +100,375 @@ class _SessionScreenState extends State<SessionScreen> {
     );
   }
 
-  String formatDate(String dateTime) {
-    return dateTime.split('T').first;
+  String formatDate(String date) {
+    return date.split('T')[0]; // Elimina la parte de la hora de la fecha
   }
 
-  String formatNumber(int number) {
-    return number.toString().replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
-  }
-
-  String getCoachingStatus(bool coachingComplete) {
-    return coachingComplete ? 'Completado' : 'Pendiente';
+  Widget buildSessionCard(SessionData session) {
+    return Card(
+      margin: const EdgeInsets.all(10),
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Fecha: ',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
+                  ),
+                  TextSpan(
+                    text: formatDate(session.sessionDate),
+                    style: TextStyle(fontSize: 14, color: Colors.black),
+                  ),
+                ],
+              ),
+            ),
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Estado: ',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
+                  ),
+                  TextSpan(
+                    text: session.status,
+                    style: TextStyle(fontSize: 14, color: Colors.black),
+                  ),
+                ],
+              ),
+            ),
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Puntos: ',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
+                  ),
+                  TextSpan(
+                    text: session.sessionPoints
+                        .toStringAsFixed(0)
+                        .replaceAllMapped(
+                            RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => '.'),
+                    style: TextStyle(fontSize: 14, color: Colors.black),
+                  ),
+                ],
+              ),
+            ),
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Puntos aplicados: ',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
+                  ),
+                  TextSpan(
+                    text: session.sessionPointsApplied
+                        .toStringAsFixed(0)
+                        .replaceAllMapped(
+                            RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => '.'),
+                    style: TextStyle(fontSize: 14, color: Colors.black),
+                  ),
+                ],
+              ),
+            ),
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Puntos pendientes: ',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
+                  ),
+                  TextSpan(
+                    text: session.sessionPendingPoints
+                        .toStringAsFixed(0)
+                        .replaceAllMapped(
+                            RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => '.'),
+                    style: TextStyle(fontSize: 14, color: Colors.black),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sesiones')),
+      appBar: AppBar(title: const Text('Session Screen')),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Center(
-              child: Text(
-                'Sesiones',
-                style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold),
-              ),
+            padding: const EdgeInsets.all(10.0),
+            child: Text(
+              'Próxima Sesión',
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
             ),
           ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: coachingDataList.length,
-              itemBuilder: (context, index) {
-                var data = coachingDataList[index];
-                return Card(
-                  margin: const EdgeInsets.all(10),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
+          if (activeSession != null)
+            Card(
+              margin: const EdgeInsets.all(10),
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: 'Desde: ',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: 'Fecha: ',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
                                       ),
-                                      TextSpan(
-                                        text: formatDate(data.startDate),
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.black),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                    TextSpan(
+                                      text: formatDate(
+                                          activeSession!.sessionDate),
+                                      style: TextStyle(
+                                          fontSize: 14, color: Colors.black),
+                                    ),
+                                  ],
                                 ),
-                                RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: 'Hasta: ',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black),
+                              ),
+                              RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: 'Estado: ',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
                                       ),
-                                      TextSpan(
-                                        text: formatDate(data.endDate),
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.black),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                    TextSpan(
+                                      text: activeSession!.status,
+                                      style: TextStyle(
+                                          fontSize: 14, color: Colors.black),
+                                    ),
+                                  ],
                                 ),
-                                RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: 'Points: ',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black),
-                                      ),
-                                      TextSpan(
-                                        text: formatNumber(data.points.toInt()),
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.black),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: 'Promo Points: ',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black),
-                                      ),
-                                      TextSpan(
-                                        text: formatNumber(data.promoPoints.toInt()),
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.black),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: 'Estado: ',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black),
-                                      ),
-                                      TextSpan(
-                                        text: getCoachingStatus(data.coachingComplete),
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.black),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: 'Total Points: ',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black),
-                                      ),
-                                      TextSpan(
-                                        text: formatNumber(data.totalPoints.toInt()),
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.black),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: 'Total Sessions: ',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black),
-                                      ),
-                                      TextSpan(
-                                        text: '${data.totalSessions}',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.black),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: 'Pending Sessions: ',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black),
-                                      ),
-                                      TextSpan(
-                                        text: '${data.pendingSessions}',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.black),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
                         ),
-                        SizedBox(height: 10),
-                        Center(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              // Acción del botón
-                            },
-                            child: Text('Sesiones'),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: 'Puntos: ',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: activeSession!.sessionPoints
+                                          .toStringAsFixed(0)
+                                          .replaceAllMapped(
+                                            RegExp(r'\B(?=(\d{3})+(?!\d))'),
+                                            (match) => '.',
+                                          ),
+                                      style: TextStyle(
+                                          fontSize: 14, color: Colors.black),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: 'Puntos aplicados: ',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: activeSession!.sessionPointsApplied
+                                          .toStringAsFixed(0)
+                                          .replaceAllMapped(
+                                            RegExp(r'\B(?=(\d{3})+(?!\d))'),
+                                            (match) => '.',
+                                          ),
+                                      style: TextStyle(
+                                          fontSize: 14, color: Colors.black),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                  height:
+                                      8), // Espacio entre los RichText y el TextFormField
+                              TextFormField(
+                                controller: pendingPointsController,
+                                decoration: InputDecoration(
+                                  labelText: 'Puntos pendientes',
+                                  labelStyle: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(
+                                      vertical: 10, horizontal: 12),
+                                  isDense: true,
+                                  border: OutlineInputBorder(),
+                                ),
+                                keyboardType: TextInputType.number,
+                                onChanged: (value) {
+                                  if (int.tryParse(value) != null) {
+                                    int parsedValue = int.parse(value);
+                                    if (parsedValue <=
+                                        activeSession!.sessionPoints) {
+                                      points = parsedValue;
+                                    } else {
+                                      // Setear el valor máximo permitido si se superan los puntos
+                                      pendingPointsController.text =
+                                          activeSession!.sessionPoints
+                                              .toStringAsFixed(0);
+
+                                      // Mostrar mensaje de alerta
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: Text('Advertencia'),
+                                            content: Text(
+                                              'Los puntos pendientes no pueden ser mayores que los puntos de sesión (${activeSession!.sessionPoints}). Se establecerá el valor máximo permitido automáticamente.',
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                child: Text('OK'),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    }
+                                  } else {
+                                    // Handle invalid input
+                                  }
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  ),
-                );
-              },
+                    SizedBox(
+                        height:
+                            16), // Espacio entre las filas de contenido y el botón
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (pendingPointsController.text.isEmpty) {
+                            // Validación si el campo está vacío
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('Error'),
+                                  content: Text(
+                                    'Debe ingresar los puntos pendientes antes de marcar la sesión.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      child: Text('OK'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          } else {
+                            // Continuar con la navegación si el campo no está vacío
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    QrScanScreen(points: points),
+                              ),
+                            ).then((_) {
+                              fetchData(); // Llama a fetchData al regresar
+                            });
+                          }
+                        },
+                        child: Text("Marcar Sesión"),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
+          Divider(),
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Text(
+              'Sesiones',
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Expanded(
+            child: sessionLists.isEmpty
+                ? Center(
+                    child: LoadingAnimationWidget.newtonCradle(
+                      color: Colors.black,
+                      size: 200,
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: sessionLists.length,
+                    itemBuilder: (context, index) {
+                      var session = sessionLists[index];
+                      return buildSessionCard(session);
+                    },
+                  ),
           ),
         ],
       ),

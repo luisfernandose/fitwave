@@ -38,6 +38,9 @@ dependencies:
   flutter_local_notifications: 17.2.1
   shared_preferences: 2.2.3
   flutter_timer_countdown: 1.0.7
+  loading_animation_widget: 1.2.1
+  qr_bar_code_scanner_dialog: 0.0.5
+  flutter_qr_bar_scanner: 3.0.2
 
 dev_dependencies:
   flutter_test:
