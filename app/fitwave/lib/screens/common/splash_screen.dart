@@ -1,7 +1,5 @@
-import 'package:fitwave/screens/common/home_screen.dart';
 import 'package:flutter/material.dart';
 
-import '../consultant/qr_screen.dart';
 import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {

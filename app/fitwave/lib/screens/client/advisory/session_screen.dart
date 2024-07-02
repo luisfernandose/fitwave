@@ -446,50 +446,6 @@ class _SessionScreenState extends State<SessionScreen> {
                         ),
                       ],
                     ),
-                    // SizedBox(
-                    //     height:
-                    //         16), // Espacio entre las filas de contenido y el botón
-                    // Align(
-                    //   alignment: Alignment.bottomRight,
-                    //   child: ElevatedButton(
-                    //     onPressed: () async {
-                    //       if (pendingPointsController.text.isEmpty) {
-                    //         // Validación si el campo está vacío
-                    //         showDialog(
-                    //           context: context,
-                    //           builder: (BuildContext context) {
-                    //             return AlertDialog(
-                    //               title: Text('Error'),
-                    //               content: Text(
-                    //                 'Debe ingresar los puntos pendientes antes de marcar la sesión.',
-                    //               ),
-                    //               actions: [
-                    //                 TextButton(
-                    //                   child: Text('OK'),
-                    //                   onPressed: () {
-                    //                     Navigator.of(context).pop();
-                    //                   },
-                    //                 ),
-                    //               ],
-                    //             );
-                    //           },
-                    //         );
-                    //       } else {
-                    //         // Continuar con la navegación si el campo no está vacío
-                    //         Navigator.push(
-                    //           context,
-                    //           MaterialPageRoute(
-                    //             builder: (context) =>
-                    //                 QrScanScreen(points: points),
-                    //           ),
-                    //         ).then((_) {
-                    //           fetchData(); // Llama a fetchData al regresar
-                    //         });
-                    //       }
-                    //     },
-                    //     child: Text("Marcar Sesión"),
-                    //   ),
-                    // ),
                   ],
                 ),
               ),
