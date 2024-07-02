@@ -221,25 +221,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: rememberPassword,
-                                onChanged: (bool? value) {
-                                  setState(() {
-                                    rememberPassword = value!;
-                                  });
-                                },
-                                activeColor: Colors.black,
-                              ),
-                              const Text(
-                                'Recordarme',
-                                style: TextStyle(
-                                  color: Colors.black45,
-                                ),
-                              ),
-                            ],
-                          ),
                           GestureDetector(
                             onTap: () async {
                               TextEditingController _emailController =

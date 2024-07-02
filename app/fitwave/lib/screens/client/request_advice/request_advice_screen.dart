@@ -92,7 +92,7 @@ class _RequestAdviceScreenState extends State<RequestAdviceScreen> {
           'https://fitwave.bufalocargo.com/api/FitApi/GetAllCoachingRequest'),
       headers: <String, String>{
         'Authorization': token!,
-        'CustomerId': 'f92ed681-c558-4bcf-9323-7e7f010b3331',
+        'CustomerId': userId!,
       },
     );
 
