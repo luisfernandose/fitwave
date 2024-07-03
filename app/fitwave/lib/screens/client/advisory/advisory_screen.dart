@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:fitwave/screens/client/advisory/session_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/coaching_data.dart';
@@ -18,7 +17,7 @@ class AdvisoryScreen extends StatefulWidget {
 class _AdvisoryScreenState extends State<AdvisoryScreen> {
   List<CoachingData> coachingDataList = [];
   late String? token;
-  late String? userId;
+  late String? customerId;
 
   @override
   void initState() {
@@ -35,7 +34,7 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       token = prefs.getString('token');
-      userId = 'f92ed681-c558-4bcf-9323-7e7f010b3331';
+      customerId = prefs.getString('customerId');
     });
   }
 
@@ -45,7 +44,7 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
             'https://fitwave.bufalocargo.com/api/FitApi/GetCustomerCoaching'),
         headers: {
           'Authorization': token!,
-          'CustomerId': userId!,
+          'CustomerId': customerId!,
         });
 
     if (response.statusCode == 200) {
@@ -106,7 +105,7 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
     final Color backgroundColor = Color.fromARGB(255, 248, 248, 248);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Asesorias'),
+        title: const Text('Asesorías'),
         backgroundColor: primaryColor,
       ),
       body: Column(
@@ -115,15 +114,17 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: Center(
               child: Text(
-                'Asesorias',
+                'Asesorías',
                 style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold),
               ),
             ),
           ),
           coachingDataList.isEmpty
-              ? LoadingAnimationWidget.newtonCradle(
-                  color: Colors.black,
-                  size: 200,
+              ? Center(
+                  child: Text(
+                    'No hay asesorías disponibles',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
                 )
               : Expanded(
                   child: ListView.builder(
@@ -208,72 +209,6 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
                                         text: TextSpan(
                                           children: [
                                             TextSpan(
-                                              text: 'Puntos: ',
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.black),
-                                            ),
-                                            TextSpan(
-                                              text: formatNumber(
-                                                  data.points.toInt()),
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.black),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      RichText(
-                                        text: TextSpan(
-                                          children: [
-                                            TextSpan(
-                                              text: 'Puntos de promoción: ',
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.black),
-                                            ),
-                                            TextSpan(
-                                              text: formatNumber(
-                                                  data.promoPoints.toInt()),
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.black),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      RichText(
-                                        text: TextSpan(
-                                          children: [
-                                            TextSpan(
-                                              text: 'Puntos totales: ',
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.black),
-                                            ),
-                                            TextSpan(
-                                              text: formatNumber(
-                                                  data.totalPoints.toInt()),
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.black),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      RichText(
-                                        text: TextSpan(
-                                          children: [
-                                            TextSpan(
                                               text: 'Sesiones Totales: ',
                                               style: TextStyle(
                                                   fontSize: 14,
@@ -310,19 +245,93 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
                                       ),
                                     ],
                                   ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: 'Puntos: ',
+                                              style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black),
+                                            ),
+                                            TextSpan(
+                                              text: formatNumber(
+                                                  data.points.toInt()),
+                                              style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.black),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: 'Promoción: ',
+                                              style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black),
+                                            ),
+                                            TextSpan(
+                                              text: formatNumber(
+                                                  data.promoPoints.toInt()),
+                                              style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.black),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: 'Puntos Totales: ',
+                                              style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black),
+                                            ),
+                                            TextSpan(
+                                              text: formatNumber(
+                                                  data.totalPoints.toInt()),
+                                              style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.black),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
                               SizedBox(height: 10),
                               Center(
                                 child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: primaryColor,
+                                  ),
                                   onPressed: () {
                                     Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                            builder: (context) =>
-                                                SessionScreen()));
+                                            builder: (context) => SessionScreen(
+                                                idCoaching:
+                                                    coachingDataList[index]
+                                                        .idCoaching)));
                                   },
-                                  child: Text('Sesiones'),
+                                  child: Text(
+                                    'Sesiones',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
                                 ),
                               ),
                             ],

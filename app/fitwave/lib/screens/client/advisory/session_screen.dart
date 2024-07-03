@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart'; // Para usar TextInputFormatter
 
 import '../models/session_data.dart';
 import 'qr_scan_screen.dart'; // Importa tu pantalla de escaneo QR aquí
 
 class SessionScreen extends StatefulWidget {
-  const SessionScreen({Key? key});
+  final String idCoaching;
+  const SessionScreen({ required this.idCoaching, Key? key});
 
   @override
   State<SessionScreen> createState() => _SessionScreenState();
@@ -40,7 +42,6 @@ class _SessionScreenState extends State<SessionScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       token = prefs.getString('token');
-      couchingId = '5fb3a6d4-37d0-4ed8-92c0-891498b1fe9c';
     });
   }
 
@@ -50,7 +51,7 @@ class _SessionScreenState extends State<SessionScreen> {
           'https://fitwave.bufalocargo.com/api/FitApi/GetCustomerSessions'),
       headers: {
         'Authorization': token!,
-        'CoachingId': couchingId!,
+        'CoachingId': widget.idCoaching,
       },
     );
 
@@ -65,6 +66,8 @@ class _SessionScreenState extends State<SessionScreen> {
       setState(() {
         sessionLists =
             sessionListData.map((data) => SessionData.fromJson(data)).toList();
+        // Ordenar sessionLists por sessionNumber
+        sessionLists.sort((a, b) => a.sessionNumber.compareTo(b.sessionNumber));
         activeSession = SessionData.fromJson(activeSessionData);
         pendingPointsController.text =
             activeSession!.sessionPendingPoints.toStringAsFixed(0);
@@ -215,11 +218,13 @@ class _SessionScreenState extends State<SessionScreen> {
     );
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Session Screen'),
+        title: const Text('Sesiones'),
         backgroundColor: primaryColor,
       ),
       body: Column(
@@ -227,7 +232,7 @@ class _SessionScreenState extends State<SessionScreen> {
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: Text(
-              'Próxima Sesión',
+              'Sesión Activa',
               style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
@@ -277,7 +282,7 @@ class _SessionScreenState extends State<SessionScreen> {
                                 text: TextSpan(
                                   children: [
                                     TextSpan(
-                                      text: 'Puntos aplicados: ',
+                                      text: 'Puntos Aplicados: ',
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
@@ -297,15 +302,20 @@ class _SessionScreenState extends State<SessionScreen> {
                                   ],
                                 ),
                               ),
-                              SizedBox(
-                                  height:
-                                      8), // Espacio entre los RichText y el TextFormField
+                              Text(
+                                'Puntos Pendientes',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
                               Container(
                                 width: 150,
                                 child: TextFormField(
                                   controller: pendingPointsController,
                                   decoration: InputDecoration(
-                                    labelText: 'Puntos pendientes',
+                                    labelText: '',
                                     labelStyle: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
@@ -317,17 +327,28 @@ class _SessionScreenState extends State<SessionScreen> {
                                     border: OutlineInputBorder(),
                                   ),
                                   keyboardType: TextInputType.number,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    ThousandsSeparatorInputFormatter(),
+                                  ],
                                   onChanged: (value) {
-                                    if (int.tryParse(value) != null) {
-                                      int parsedValue = int.parse(value);
+                                    if (int.tryParse(
+                                            value.replaceAll('.', '')) !=
+                                        null) {
+                                      int parsedValue =
+                                          int.parse(value.replaceAll('.', ''));
                                       if (parsedValue <=
                                           activeSession!.sessionPoints) {
                                         points = parsedValue;
                                       } else {
                                         // Setear el valor máximo permitido si se superan los puntos
-                                        pendingPointsController.text =
-                                            activeSession!.sessionPoints
-                                                .toStringAsFixed(0);
+                                        pendingPointsController.text = activeSession!
+                                            .sessionPoints
+                                            .toStringAsFixed(0)
+                                            .replaceAllMapped(
+                                                RegExp(
+                                                    r'\B(?=(\d{3})+(?!\d))'),
+                                                (match) => '.');
 
                                         // Mostrar mensaje de alerta
                                         showDialog(
@@ -402,7 +423,7 @@ class _SessionScreenState extends State<SessionScreen> {
                                   ],
                                 ),
                               ),
-                              SizedBox(height: 5),
+                              SizedBox(height: 17),
                               ElevatedButton(
                                 onPressed: () async {
                                   if (pendingPointsController.text.isEmpty) {
@@ -439,7 +460,13 @@ class _SessionScreenState extends State<SessionScreen> {
                                     });
                                   }
                                 },
-                                child: Text("Marcar Sesión"),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryColor,
+                                ),
+                                child: Text(
+                                  "Marcar Sesión",
+                                  style: TextStyle(color: Colors.white),
+                                ),
                               ),
                             ],
                           ),
@@ -480,3 +507,25 @@ class _SessionScreenState extends State<SessionScreen> {
     );
   }
 }
+
+// Formateador personalizado para separar los miles
+  class ThousandsSeparatorInputFormatter extends TextInputFormatter {
+    @override
+    TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue,
+      TextEditingValue newValue,
+    ) {
+      String newText = newValue.text.replaceAll('.', '');
+      String formattedText = '';
+      for (int i = 0; i < newText.length; i++) {
+        if (i != 0 && (newText.length - i) % 3 == 0) {
+          formattedText += '.';
+        }
+        formattedText += newText[i];
+      }
+      return TextEditingValue(
+        text: formattedText,
+        selection: TextSelection.collapsed(offset: formattedText.length),
+      );
+    }
+  }

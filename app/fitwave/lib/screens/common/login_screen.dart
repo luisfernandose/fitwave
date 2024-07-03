@@ -26,6 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String? role;
   String? userName;
   String? userId;
+  String? customerId;
 
   Future<String> getDeviceId() async {
     final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
@@ -77,12 +78,14 @@ class _LoginScreenState extends State<LoginScreen> {
         role = responseData['data']['rol'];
         userName = responseData['data']['user']['names'];
         userId = responseData['data']['user']['id'];
+        customerId = responseData['data']['user']['customerid'];
       });
 
       // Save token in SharedPreferences
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', responseData['data']['token']);
       await prefs.setString('userId', responseData['data']['user']['id']);
+      await prefs.setString('customerId', responseData['data']['user']['customerid']);
 
       Navigator.push(
         context,

@@ -18,6 +18,9 @@ class CoachingRequest {
   dynamic userEdit;
   bool? active;
   bool? isDelete;
+  String? pointsRequestedFormated;
+  String? startDateFormat;
+  String? endDateFormat;
 
   CoachingRequest({
     this.idCoachingRequest,
@@ -39,6 +42,9 @@ class CoachingRequest {
     this.userEdit,
     this.active,
     this.isDelete,
+    this.pointsRequestedFormated,
+    this.startDateFormat,
+    this.endDateFormat,
   });
 
   factory CoachingRequest.fromJson(Map<String, dynamic> json) {
@@ -62,6 +68,9 @@ class CoachingRequest {
       userEdit: json['userEdit'],
       active: json['active'] ?? false,
       isDelete: json['isDelete'] ?? false,
+      pointsRequestedFormated: json['pointsRequestedFormated'],
+      startDateFormat: json['startDateFormat'],
+      endDateFormat: json['endDateFormat'],
     );
   }
 }

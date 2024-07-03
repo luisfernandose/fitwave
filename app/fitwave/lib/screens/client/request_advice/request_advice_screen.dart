@@ -17,9 +17,10 @@ class _RequestAdviceScreenState extends State<RequestAdviceScreen> {
   final TextEditingController _pointsController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   String? token;
-  String? userId;
+  String? customerId;
   bool _isButtonEnabled = false;
   List<CoachingRequest> coachingRequests = [];
+  bool isAdviceAvailable = false;
 
   @override
   void initState() {
@@ -39,10 +40,9 @@ class _RequestAdviceScreenState extends State<RequestAdviceScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       token = prefs.getString('token');
-      userId = prefs.getString('userId');
-      // userId = 'f92ed681-c558-4bcf-9323-7e7f010b3331';
+      customerId = prefs.getString('customerId');
     });
-    if (token != null && userId != null) {
+    if (token != null && customerId != null) {
       _fetchCoachingRequests();
     }
   }
@@ -71,7 +71,7 @@ class _RequestAdviceScreenState extends State<RequestAdviceScreen> {
             'https://fitwave.bufalocargo.com/api/FitApi/PlaceCoachingRequest'),
         headers: <String, String>{
           'Authorization': token!,
-          'CustomerId': userId!,
+          'CustomerId': customerId!,
           'PointsRequested': pointsRequested.toString(),
         },
       );
@@ -92,7 +92,7 @@ class _RequestAdviceScreenState extends State<RequestAdviceScreen> {
           'https://fitwave.bufalocargo.com/api/FitApi/GetAllCoachingRequest'),
       headers: <String, String>{
         'Authorization': token!,
-        'CustomerId': userId!,
+        'CustomerId': customerId!,
       },
     );
 
@@ -105,16 +105,38 @@ class _RequestAdviceScreenState extends State<RequestAdviceScreen> {
         setState(() {
           coachingRequests =
               jsonList.map((json) => CoachingRequest.fromJson(json)).toList();
+          isAdviceAvailable = false;
         });
       } else {
-        _showDialog(
-            'La respuesta del servidor no contiene una lista válida de solicitudes de asesoría');
+        setState(() {
+          isAdviceAvailable = true;
+        });
       }
     } else {
       _showDialog(
           'Error al obtener las solicitudes de asesoría, prueba nuevamente',
           error: response.statusCode);
     }
+  }
+
+  void _showText(String message, {int? error}) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: error == null ? Text('Información') : Text('Error $error'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cerrar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showDialog(String message, {int? error}) {
@@ -200,7 +222,10 @@ class _RequestAdviceScreenState extends State<RequestAdviceScreen> {
                     width: double.infinity, // Aumentar el tamaño horizontal
                     child: ElevatedButton(
                       onPressed: _isButtonEnabled ? _sendRequest : null,
-                      child: Text('Solicitar'),
+                      child: Text(
+                        'Solicitar',
+                        style: TextStyle(color: Colors.white),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
                         padding: EdgeInsets.symmetric(vertical: 16.0),
@@ -214,7 +239,7 @@ class _RequestAdviceScreenState extends State<RequestAdviceScreen> {
             SizedBox(height: 20),
             Center(
               child: Text(
-                'Sesiones',
+                'Asesorias',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -222,37 +247,49 @@ class _RequestAdviceScreenState extends State<RequestAdviceScreen> {
               ),
             ),
             SizedBox(height: 20),
-            Expanded(
-              child: ListView.builder(
-                itemCount: coachingRequests.length,
-                itemBuilder: (context, index) {
-                  final request = coachingRequests[index];
-                  return Card(
-                    margin: EdgeInsets.symmetric(vertical: 8.0),
-                    child: ListTile(
-                      tileColor: backgroundColor,
-                      title: Text(
-                          'Solicitud #${request.requestNumber} - ${request.status}'),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                              'Puntos Solicitados: ${request.pointsRequested}'),
-                          Text('Puntos Aprobados: ${request.pointsApproved}'),
-                          Text(
-                              'Fecha de Inicio: ${DateFormat('yyyy-MM-dd').format(request.startDate!)}'),
-                          Text(
-                              'Fecha de Fin: ${DateFormat('yyyy-MM-dd').format(request.endDate!)}'),
-                        ],
+            isAdviceAvailable
+                ? Center(
+                    child: Text(
+                      'No hay solicitudes disponibles',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
-                      onTap: () {
-                        // Acción al tocar la tarjeta
+                    ),
+                  )
+                : Expanded(
+                    child: ListView.builder(
+                      itemCount: coachingRequests.length,
+                      itemBuilder: (context, index) {
+                        final request = coachingRequests[index];
+                        return Card(
+                          margin: EdgeInsets.symmetric(vertical: 8.0),
+                          child: ListTile(
+                            tileColor: backgroundColor,
+                            title: Text(
+                                'Solicitud #${request.requestNumber} - ${request.status}'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    'Fecha Solcitud: ${DateFormat('yyyy-MM-dd').format(request.insertDate!)}'),
+                                Text(
+                                    'Puntos Solicitados: ${request.pointsRequestedFormated}'),
+                                Text(
+                                    'Puntos Aprobados: ${request.pointsApproved}'),
+                                Text(
+                                    'Fecha de Inicio: ${request.startDateFormat}'),
+                                Text('Fecha de Fin: ${request.endDateFormat}'),
+                              ],
+                            ),
+                            onTap: () {
+                              // Acción al tocar la tarjeta
+                            },
+                          ),
+                        );
                       },
                     ),
-                  );
-                },
-              ),
-            ),
+                  ),
           ],
         ),
       ),

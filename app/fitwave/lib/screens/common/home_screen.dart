@@ -200,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('HomeScreen'),
+        title: Text('Home'),
         backgroundColor: primaryColor,
       ),
       backgroundColor: backgroundColor,
@@ -294,6 +294,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white,
         backgroundColor: primaryColor,
         currentIndex: 0,
         onTap: (index) {
