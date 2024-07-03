@@ -67,12 +67,12 @@ class _QrScanScreenState extends State<QrScanScreen> {
           var responseData = jsonDecode(response.body);
           var responseCode = responseData['response_code'];
           var message = responseData['message'];
-          if (responseCode == 1) {
+          if (responseCode != 14) {
             showDialog(
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
-                  title: Text('Registro Exitoso'),
+                  title: Text('Atencion:'),
                   content: Text(message),
                   actions: <Widget>[
                     TextButton(
@@ -86,12 +86,31 @@ class _QrScanScreenState extends State<QrScanScreen> {
                 );
               },
             );
-          } else {
+          } 
+          //   showDialog(
+          //     context: context,
+          //     builder: (BuildContext context) {
+          //       return AlertDialog(
+          //         title: Text('Error en el Registro'),
+          //         content: Text(message),
+          //         actions: <Widget>[
+          //           TextButton(
+          //             child: Text('OK'),
+          //             onPressed: () {
+          //               Navigator.of(context).pop();
+          //               Navigator.of(context).pop();
+          //             },
+          //           ),
+          //         ],
+          //       );
+          //     },
+          //   );
+          else {
             showDialog(
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
-                  title: Text('Error en el Registro'),
+                  title: Text('Exitoso'),
                   content: Text(message),
                   actions: <Widget>[
                     TextButton(

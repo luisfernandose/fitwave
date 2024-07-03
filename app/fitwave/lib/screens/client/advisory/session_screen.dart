@@ -11,7 +11,7 @@ import 'qr_scan_screen.dart'; // Importa tu pantalla de escaneo QR aquí
 
 class SessionScreen extends StatefulWidget {
   final String idCoaching;
-  const SessionScreen({ required this.idCoaching, Key? key});
+  const SessionScreen({required this.idCoaching, Key? key});
 
   @override
   State<SessionScreen> createState() => _SessionScreenState();
@@ -30,6 +30,12 @@ class _SessionScreenState extends State<SessionScreen> {
   @override
   void initState() {
     super.initState();
+    _loadTokenAndFetchData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _loadTokenAndFetchData();
   }
 
@@ -69,6 +75,7 @@ class _SessionScreenState extends State<SessionScreen> {
         // Ordenar sessionLists por sessionNumber
         sessionLists.sort((a, b) => a.sessionNumber.compareTo(b.sessionNumber));
         activeSession = SessionData.fromJson(activeSessionData);
+        points = activeSession!.sessionPendingPoints.toInt();
         pendingPointsController.text =
             activeSession!.sessionPendingPoints.toStringAsFixed(0);
       });
@@ -218,8 +225,6 @@ class _SessionScreenState extends State<SessionScreen> {
     );
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -342,13 +347,14 @@ class _SessionScreenState extends State<SessionScreen> {
                                         points = parsedValue;
                                       } else {
                                         // Setear el valor máximo permitido si se superan los puntos
-                                        pendingPointsController.text = activeSession!
-                                            .sessionPoints
-                                            .toStringAsFixed(0)
-                                            .replaceAllMapped(
-                                                RegExp(
-                                                    r'\B(?=(\d{3})+(?!\d))'),
-                                                (match) => '.');
+                                        pendingPointsController.text =
+                                            activeSession!.sessionPoints
+                                                .toStringAsFixed(0)
+                                                .replaceAllMapped(
+                                                    RegExp(
+                                                        r'\B(?=(\d{3})+(?!\d))'),
+                                                    (match) => '.');
+                                        
 
                                         // Mostrar mensaje de alerta
                                         showDialog(
@@ -509,23 +515,23 @@ class _SessionScreenState extends State<SessionScreen> {
 }
 
 // Formateador personalizado para separar los miles
-  class ThousandsSeparatorInputFormatter extends TextInputFormatter {
-    @override
-    TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue,
-      TextEditingValue newValue,
-    ) {
-      String newText = newValue.text.replaceAll('.', '');
-      String formattedText = '';
-      for (int i = 0; i < newText.length; i++) {
-        if (i != 0 && (newText.length - i) % 3 == 0) {
-          formattedText += '.';
-        }
-        formattedText += newText[i];
+class ThousandsSeparatorInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    String newText = newValue.text.replaceAll('.', '');
+    String formattedText = '';
+    for (int i = 0; i < newText.length; i++) {
+      if (i != 0 && (newText.length - i) % 3 == 0) {
+        formattedText += '.';
       }
-      return TextEditingValue(
-        text: formattedText,
-        selection: TextSelection.collapsed(offset: formattedText.length),
-      );
+      formattedText += newText[i];
     }
+    return TextEditingValue(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: formattedText.length),
+    );
   }
+}
