@@ -41,7 +41,7 @@ class _QrScreenState extends State<QrScreen> {
 
   void fetchQR() async {
     final response = await http.get(
-        Uri.parse('https://fitwave.bufalocargo.com/api/FitApi/GetAssesorQR'),
+        Uri.parse('https://fitwave.fit/api/FitApi/GetAssesorQR'),
         headers: {
           'Authorization': '$token',
           'Id': userId!,

@@ -25,6 +25,12 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
     _loadTokenAndFetchData();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadTokenAndFetchData();
+  }
+
   Future<void> _loadTokenAndFetchData() async {
     await _loadToken();
     fetchData();
@@ -40,8 +46,7 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
 
   void fetchData() async {
     final response = await http.get(
-        Uri.parse(
-            'https://fitwave.bufalocargo.com/api/FitApi/GetCustomerCoaching'),
+        Uri.parse('https://fitwave.fit/api/FitApi/GetCustomerCoaching'),
         headers: {
           'Authorization': token!,
           'CustomerId': customerId!,
@@ -326,7 +331,11 @@ class _AdvisoryScreenState extends State<AdvisoryScreen> {
                                             builder: (context) => SessionScreen(
                                                 idCoaching:
                                                     coachingDataList[index]
-                                                        .idCoaching)));
+                                                        .idCoaching))).then(
+                                        (_) {
+                                      fetchData(); // Llama a fetchData al regresar
+                                    });
+                                    ;
                                   },
                                   child: Text(
                                     'Sesiones',

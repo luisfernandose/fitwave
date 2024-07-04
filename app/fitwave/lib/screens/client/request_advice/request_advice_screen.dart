@@ -67,8 +67,7 @@ class _RequestAdviceScreenState extends State<RequestAdviceScreen> {
       final int pointsRequested =
           int.parse(_pointsController.text.replaceAll(',', ''));
       final response = await http.post(
-        Uri.parse(
-            'https://fitwave.bufalocargo.com/api/FitApi/PlaceCoachingRequest'),
+        Uri.parse('https://fitwave.fit/api/FitApi/PlaceCoachingRequest'),
         headers: <String, String>{
           'Authorization': token!,
           'CustomerId': customerId!,
@@ -88,8 +87,7 @@ class _RequestAdviceScreenState extends State<RequestAdviceScreen> {
 
   Future<void> _fetchCoachingRequests() async {
     final response = await http.get(
-      Uri.parse(
-          'https://fitwave.bufalocargo.com/api/FitApi/GetAllCoachingRequest'),
+      Uri.parse('https://fitwave.fit/api/FitApi/GetAllCoachingRequest'),
       headers: <String, String>{
         'Authorization': token!,
         'CustomerId': customerId!,

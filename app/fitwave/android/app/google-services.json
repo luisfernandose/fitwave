@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "384654684933",
+    "project_id": "bufalocargoapp",
+    "storage_bucket": "bufalocargoapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:384654684933:android:65e19e843cba8059c67d6c",
+        "android_client_info": {
+          "package_name": "com.example.bufalocargo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZ3OIhwvTu6wBYBcUakMbw4Vy8BUigbYg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:384654684933:android:b405d2ab95134230c67d6c",
+        "android_client_info": {
+          "package_name": "com.fitwave.fitwave"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZ3OIhwvTu6wBYBcUakMbw4Vy8BUigbYg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

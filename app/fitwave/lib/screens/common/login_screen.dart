@@ -1,9 +1,11 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../infraestructure/push_notifications_service.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -28,11 +30,26 @@ class _LoginScreenState extends State<LoginScreen> {
   String? userId;
   String? customerId;
 
+    @override
+  void initState() {
+    super.initState();
+    _getToken();
+  }
+
   Future<String> getDeviceId() async {
-    final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
-    final deviceInfo = await deviceInfoPlugin.deviceInfo;
-    final allInfo = deviceInfo.data;
-    return allInfo['id'] ?? 'Unknown Device ID';
+    // final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
+    // final deviceInfo = await deviceInfoPlugin.deviceInfo;
+    // final allInfo = deviceInfo.data;
+    return PushNotificationService.token;
+  }
+
+  void _getToken() async {
+    // FirebaseMessaging messaging = FirebaseMessaging.instance;
+    // String? token = await messaging.getToken();
+    print("Firebase Messaging Token: ${PushNotificationService.token}");
+    setState(() {
+      // _token = token;
+    });
   }
 
   Future<void> signIn() async {
@@ -41,6 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     String deviceId = await getDeviceId();
+    print('el token es: ${PushNotificationService.token}');
     var requestBody = jsonEncode(<String, String>{
       'user': emailCont.text,
       'password': passwordCont.text,
@@ -51,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
     print("Request Body: $requestBody");
 
     final response = await http.post(
-      Uri.parse('https://fitwave.bufalocargo.com/api/Security/ApiLogin'),
+      Uri.parse('https://fitwave.fit/api/Security/ApiLogin'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -85,7 +103,8 @@ class _LoginScreenState extends State<LoginScreen> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', responseData['data']['token']);
       await prefs.setString('userId', responseData['data']['user']['id']);
-      await prefs.setString('customerId', responseData['data']['user']['customerid']);
+      await prefs.setString(
+          'customerId', responseData['data']['user']['customerid']);
 
       Navigator.push(
         context,

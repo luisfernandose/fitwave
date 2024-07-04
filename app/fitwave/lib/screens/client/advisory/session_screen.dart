@@ -21,6 +21,7 @@ class _SessionScreenState extends State<SessionScreen> {
   List<SessionData> sessionLists = [];
   SessionData? activeSession;
   late String? token;
+  bool isActive = true;
   late String? couchingId;
   int points = 0;
   TextEditingController pendingPointsController = TextEditingController();
@@ -53,8 +54,7 @@ class _SessionScreenState extends State<SessionScreen> {
 
   void fetchData() async {
     final response = await http.get(
-      Uri.parse(
-          'https://fitwave.bufalocargo.com/api/FitApi/GetCustomerSessions'),
+      Uri.parse('https://fitwave.fit/api/FitApi/GetCustomerSessions'),
       headers: {
         'Authorization': token!,
         'CoachingId': widget.idCoaching,
@@ -66,18 +66,26 @@ class _SessionScreenState extends State<SessionScreen> {
       var sessionListData = responseData['sessionLists'] as List;
       var activeSessionData = responseData['activeSession'];
 
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('idSession', activeSessionData['idSession']);
+      if (activeSessionData == null) {
+        setState(() {
+          isActive = false;
+        });
+      } else {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('idSession', activeSessionData['idSession']);
+        setState(() {
+          activeSession = SessionData.fromJson(activeSessionData);
+          points = activeSession!.sessionPendingPoints.toInt();
+          pendingPointsController.text =
+              activeSession!.sessionPendingPoints.toStringAsFixed(0);
+        });
+      }
 
       setState(() {
         sessionLists =
             sessionListData.map((data) => SessionData.fromJson(data)).toList();
         // Ordenar sessionLists por sessionNumber
         sessionLists.sort((a, b) => a.sessionNumber.compareTo(b.sessionNumber));
-        activeSession = SessionData.fromJson(activeSessionData);
-        points = activeSession!.sessionPendingPoints.toInt();
-        pendingPointsController.text =
-            activeSession!.sessionPendingPoints.toStringAsFixed(0);
       });
     } else {
       print(response.body);
@@ -242,128 +250,211 @@ class _SessionScreenState extends State<SessionScreen> {
               textAlign: TextAlign.center,
             ),
           ),
-          if (activeSession != null)
-            Card(
-              color: backgroundColor,
-              margin: const EdgeInsets.all(10),
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          isActive
+              ? Card(
+                  color: backgroundColor,
+                  margin: const EdgeInsets.all(10),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              RichText(
-                                text: TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: 'Puntos: ',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text: activeSession!.sessionPoints
-                                          .toStringAsFixed(0)
-                                          .replaceAllMapped(
-                                            RegExp(r'\B(?=(\d{3})+(?!\d))'),
-                                            (match) => '.',
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: 'Puntos: ',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
                                           ),
-                                      style: TextStyle(
-                                          fontSize: 14, color: Colors.black),
+                                        ),
+                                        TextSpan(
+                                          text: activeSession?.sessionPoints
+                                              .toStringAsFixed(0)
+                                              .replaceAllMapped(
+                                                RegExp(r'\B(?=(\d{3})+(?!\d))'),
+                                                (match) => '.',
+                                              ),
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.black),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              ),
-                              RichText(
-                                text: TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: 'Puntos Aplicados: ',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text: activeSession!.sessionPointsApplied
-                                          .toStringAsFixed(0)
-                                          .replaceAllMapped(
-                                            RegExp(r'\B(?=(\d{3})+(?!\d))'),
-                                            (match) => '.',
+                                  ),
+                                  RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: 'Puntos Aplicados: ',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
                                           ),
-                                      style: TextStyle(
-                                          fontSize: 14, color: Colors.black),
+                                        ),
+                                        TextSpan(
+                                          text: activeSession
+                                              ?.sessionPointsApplied
+                                              .toStringAsFixed(0)
+                                              .replaceAllMapped(
+                                                RegExp(r'\B(?=(\d{3})+(?!\d))'),
+                                                (match) => '.',
+                                              ),
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.black),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              ),
-                              Text(
-                                'Puntos Pendientes',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              Container(
-                                width: 150,
-                                child: TextFormField(
-                                  controller: pendingPointsController,
-                                  decoration: InputDecoration(
-                                    labelText: '',
-                                    labelStyle: TextStyle(
+                                  ),
+                                  Text(
+                                    'Puntos Pendientes',
+                                    style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black,
                                     ),
-                                    contentPadding: EdgeInsets.symmetric(
-                                        vertical: 10, horizontal: 12),
-                                    isDense: true,
-                                    border: OutlineInputBorder(),
                                   ),
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                    ThousandsSeparatorInputFormatter(),
-                                  ],
-                                  onChanged: (value) {
-                                    if (int.tryParse(
-                                            value.replaceAll('.', '')) !=
-                                        null) {
-                                      int parsedValue =
-                                          int.parse(value.replaceAll('.', ''));
-                                      if (parsedValue <=
-                                          activeSession!.sessionPoints) {
-                                        points = parsedValue;
-                                      } else {
-                                        // Setear el valor máximo permitido si se superan los puntos
-                                        pendingPointsController.text =
-                                            activeSession!.sessionPoints
-                                                .toStringAsFixed(0)
-                                                .replaceAllMapped(
-                                                    RegExp(
-                                                        r'\B(?=(\d{3})+(?!\d))'),
-                                                    (match) => '.');
-                                        
+                                  Container(
+                                    width: 150,
+                                    child: TextFormField(
+                                      controller: pendingPointsController,
+                                      decoration: InputDecoration(
+                                        labelText: '',
+                                        labelStyle: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                            vertical: 10, horizontal: 12),
+                                        isDense: true,
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                        ThousandsSeparatorInputFormatter(),
+                                      ],
+                                      onChanged: (value) {
+                                        if (int.tryParse(
+                                                value.replaceAll('.', '')) !=
+                                            null) {
+                                          int parsedValue = int.parse(
+                                              value.replaceAll('.', ''));
+                                          if (parsedValue <=
+                                              activeSession!.sessionPoints) {
+                                            points = parsedValue;
+                                          } else {
+                                            // Setear el valor máximo permitido si se superan los puntos
+                                            pendingPointsController.text =
+                                                activeSession!.sessionPoints
+                                                    .toStringAsFixed(0)
+                                                    .replaceAllMapped(
+                                                        RegExp(
+                                                            r'\B(?=(\d{3})+(?!\d))'),
+                                                        (match) => '.');
 
-                                        // Mostrar mensaje de alerta
+                                            // Mostrar mensaje de alerta
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return AlertDialog(
+                                                  title: Text('Advertencia'),
+                                                  content: Text(
+                                                    'Los puntos pendientes no pueden ser mayores que los puntos de sesión (${activeSession!.sessionPoints}). Se establecerá el valor máximo permitido automáticamente.',
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      child: Text('OK'),
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          }
+                                        } else {
+                                          // Handle invalid input
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: 'Fecha: ',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: formatDate(
+                                              activeSession?.sessionDate ?? ''),
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.black),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: 'Estado: ',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: activeSession?.status,
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.black),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(height: 17),
+                                  ElevatedButton(
+                                    onPressed: () async {
+                                      if (pendingPointsController
+                                          .text.isEmpty) {
+                                        // Validación si el campo está vacío
                                         showDialog(
                                           context: context,
                                           builder: (BuildContext context) {
                                             return AlertDialog(
-                                              title: Text('Advertencia'),
+                                              title: Text('Error'),
                                               content: Text(
-                                                'Los puntos pendientes no pueden ser mayores que los puntos de sesión (${activeSession!.sessionPoints}). Se establecerá el valor máximo permitido automáticamente.',
+                                                'Debe ingresar los puntos pendientes antes de marcar la sesión.',
                                               ),
                                               actions: [
                                                 TextButton(
@@ -376,113 +467,41 @@ class _SessionScreenState extends State<SessionScreen> {
                                             );
                                           },
                                         );
-                                      }
-                                    } else {
-                                      // Handle invalid input
-                                    }
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              RichText(
-                                text: TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: 'Fecha: ',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text: formatDate(
-                                          activeSession!.sessionDate),
-                                      style: TextStyle(
-                                          fontSize: 14, color: Colors.black),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              RichText(
-                                text: TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: 'Estado: ',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text: activeSession!.status,
-                                      style: TextStyle(
-                                          fontSize: 14, color: Colors.black),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: 17),
-                              ElevatedButton(
-                                onPressed: () async {
-                                  if (pendingPointsController.text.isEmpty) {
-                                    // Validación si el campo está vacío
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                          title: Text('Error'),
-                                          content: Text(
-                                            'Debe ingresar los puntos pendientes antes de marcar la sesión.',
+                                      } else {
+                                        // Continuar con la navegación si el campo no está vacío
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                QrScanScreen(points: points),
                                           ),
-                                          actions: [
-                                            TextButton(
-                                              child: Text('OK'),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                  } else {
-                                    // Continuar con la navegación si el campo no está vacío
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            QrScanScreen(points: points),
-                                      ),
-                                    ).then((_) {
-                                      fetchData(); // Llama a fetchData al regresar
-                                    });
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: primaryColor,
-                                ),
-                                child: Text(
-                                  "Marcar Sesión",
-                                  style: TextStyle(color: Colors.white),
-                                ),
+                                        ).then((_) {
+                                          fetchData(); // Llama a fetchData al regresar
+                                        });
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: primaryColor,
+                                    ),
+                                    child: Text(
+                                      "Marcar Sesión",
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-            ),
+                  ),
+                )
+              : Center(
+                  child: Text(
+                  'Asesoria Completada',
+                  style: TextStyle(fontSize: 30),
+                )),
           Divider(),
           Padding(
             padding: const EdgeInsets.all(10.0),

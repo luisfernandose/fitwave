@@ -51,7 +51,7 @@ class _QrScanScreenState extends State<QrScanScreen> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? idSession = prefs.getString('idSession');
       String? token = prefs.getString('token');
-      String url = 'https://fitwave.bufalocargo.com/api/FitApi/SetSessionView';
+      String url = 'https://fitwave.fit/api/FitApi/SetSessionView';
 
       if (idSession != null && token != null) {
         Map<String, String> headers = {
@@ -86,7 +86,7 @@ class _QrScanScreenState extends State<QrScanScreen> {
                 );
               },
             );
-          } 
+          }
           //   showDialog(
           //     context: context,
           //     builder: (BuildContext context) {
